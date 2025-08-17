@@ -1,5 +1,5 @@
 [package]
-name = "rdns_toys"
+name = "rdns-toys"
 version = "0.1.0"
 edition = "2024"
 
