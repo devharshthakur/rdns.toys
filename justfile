@@ -18,8 +18,15 @@ run:
     cargo run
 
 # Run in release mode
-run-release:
+runr:
     cargo run --release
+
+# Test the project
+test:
+    cargo test
+
+# Alias for test
+t: test
 
 # Check Rust formatting
 format-check:
@@ -31,13 +38,27 @@ format:
     cargo fmt
     pnpm format
 
+# Alias for format
+fmt: format
+
+#Alias for format-check
+fmtc: format-check
+
+# Lint the project
+lint:
+    cargo clippy
+
 # Clean build artifacts
 clean:
     cargo clean
     pnpm clean
+# Alias for clean
+c: clean
 
 # Show project info
 info:
-    @echo "📦 Project: DNS Toys Rust Port"
-    @echo "🔧 Rust version: $(rustc --version)"
+    @echo "💻 Project: rdns-toys"
+    @echo "🦀 Rust version: $(rustc --version)"
     @echo "📦 Cargo version: $(cargo --version)"
+    @echo "📦 pnpm version: $(pnpm --version)"
+    @echo "📦 Node.js version: $(node --version)"

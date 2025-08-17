@@ -282,7 +282,6 @@ When reporting issues:
 
 Contributors will be recognized in:
 
-- The project README
 - Release notes
 - GitHub contributors list
 
