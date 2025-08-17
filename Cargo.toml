@@ -1,6 +1,12 @@
 [package]
 name = "rdns-toys"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2024"
+authors = ["Harsh Thakur <harshprojects2002@gmail.com>"]
 
 [dependencies]
+anyhow = "1.0.99"
+hickory-proto = "0.25.2"
+hickory-server = "0.25.2"
+regex = "1.11.1"
+tokio = "1.47.1"
