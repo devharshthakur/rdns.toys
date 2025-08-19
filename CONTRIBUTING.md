@@ -18,24 +18,24 @@ range of contributions including new services and features.
 
 - **Bug Fixes**: Fixing issues in existing ported code
 - **Code Quality Improvements**:
-  - Better error handling
-  - Improved type safety
-  - Code refactoring for better maintainability
-  - Performance optimizations
-  - Memory usage improvements
+  - [ ] Better error handling
+  - [ ] Improved type safety
+  - [ ] Code refactoring for better maintainability
+  - [ ] Performance optimizations
+  - [ ] Memory usage improvements
 - **Documentation**:
-  - Improving code comments
-  - Updating README and other docs
-  - Adding examples
-  - Fixing typos or unclear explanations
+  - [ ] Improving code comments
+  - [ ] Updating README and other docs
+  - [ ] Adding examples
+  - [ ] Fixing typos or unclear explanations
 - **Testing**:
-  - Adding unit tests
-  - Adding integration tests
-  - Improving test coverage
-  - Fixing failing tests
+  - [ ] Adding unit tests
+  - [ ] Adding integration tests
+  - [ ] Improving test coverage
+  - [ ] Fixing failing tests
 - **Configuration**:
-  - Improving configuration validation
-  - Adding configuration options for existing features
+  - [ ] Improving configuration validation
+  - [ ] Adding configuration options for existing features
 
 ### ❌ Not Accepted (During Porting Phase)
 

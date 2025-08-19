@@ -69,7 +69,7 @@ Details will be added later as project is its early stages
 
 ### Using Just Code Runner (Recommended)
 
-The project includes a `justfile` with common development commands:
+The project includes a `justfile` with common development commands. For now its is simple, but as project progresses it will eventualy become usefull
 
 ```bash
 # Show all available commands
