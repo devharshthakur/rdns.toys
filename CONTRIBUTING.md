@@ -3,12 +3,16 @@
 Thank you for your interest in contributing to the DNS Toys Rust port! This document provides
 guidelines for contributing to this project.
 
-## 🎯 Project Status
+## Project Status
 
-**Important**: This project is currently in **active porting phase** from Go to Rust. I am **NOT**
-accepting new feature contributions at this time.
+**Important**: This project is currently in **active porting phase** from Go to Rust. Contributions
+are **tentative** at this time as the project is in its early stages.
 
-## 📋 What I Accept
+**Future Contributions**: Once the initial porting phase is complete, contributions will be welcome
+for new features, improvements, and enhancements. The project will transition to accepting a broader
+range of contributions including new services and features.
+
+## What I Accept
 
 ### ✅ Welcome Contributions
 
@@ -33,7 +37,7 @@ accepting new feature contributions at this time.
   - Improving configuration validation
   - Adding configuration options for existing features
 
-### ❌ Not Accepted
+### ❌ Not Accepted (During Porting Phase)
 
 - **New Services**: Do not add new DNS services that weren't in the original Go version
 - **New Features**: Do not add features that weren't present in the original dns.toys
@@ -41,7 +45,10 @@ accepting new feature contributions at this time.
   the Rust port
 - **Breaking Changes**: Do not make changes that break existing functionality
 
-## 🚀 Getting Started
+_Note: These restrictions are temporary during the porting phase. Once the initial port is complete,
+new services and features will be welcome._
+
+## Getting Started
 
 ### Prerequisites
 
@@ -110,7 +117,7 @@ accepting new feature contributions at this time.
 8. Commit your changes with a clear, descriptive commit message
 9. Push to your fork and create a pull request
 
-## 🛠️ Development Commands
+## Development Commands
 
 ### Using Just (Recommended)
 
@@ -178,7 +185,7 @@ cargo clippy
 - Check formatting: `pnpm format:check`
 - VS Code users: Install the Prettier extension for automatic formatting on save
 
-## 📋 Pull Request Process
+## Pull Request Process
 
 ### 1. Issue-First Workflow
 
@@ -218,7 +225,7 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 #### Commit Types: Also follow's Conventional Commits guidelines
 
 - `fix:` - Bug fixes
-- `feat:` - New features (not applicable during porting phase)
+- `feat:` - New features (tentative during porting phase, will be welcome after)
 - `docs:` - Documentation changes
 - `style:` - Code style changes (formatting, missing semicolons, etc.)
 - `refactor:` - Code refactoring
@@ -261,7 +268,7 @@ When creating a PR, please use the [Pull Request Template](.github/pull_request_
 5. **Check CI**: Ensure all CI checks pass (If any)
 6. **Self-Review**: Review your own code before submitting. It is a good practice
 
-## 🐛 Reporting Issues
+## Reporting Issues
 
 When reporting issues:
 
@@ -271,21 +278,21 @@ When reporting issues:
 4. **Add Logs**: Include relevant error messages or logs
 5. **Describe Expected vs Actual**: What did you expect vs what happened
 
-## 📚 Resources
+## Resources
 
 - [Rust Book](https://doc.rust-lang.org/book/)
 - [Rust API Guidelines](https://rust-lang.github.io/api-guidelines/)
 - [Tokio Documentation](https://tokio.rs/)
 - [Original dns.toys (Go)](https://github.com/knadh/dns.toys)
 
-## 🎉 Recognition
+## Recognition
 
 Contributors will be recognized in:
 
 - Release notes
 - GitHub contributors list
 
-## 📞 Questions?
+## Questions?
 
 If you have questions about contributing:
 
@@ -293,4 +300,4 @@ If you have questions about contributing:
 2. Look at existing issues and discussions
 3. Create an issue with the "question" label
 
-Thank you for helping make this Rust port better! 🦀
+Thank you for helping make this Rust port better!

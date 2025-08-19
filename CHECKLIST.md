@@ -6,7 +6,7 @@ This document tracks the progress of porting the original Go-based
 > **Note:** This checklist is generated with the assistance of AI and is subject to change or
 > updates over time as the project evolves.
 
-## 🎯 Porting Overview
+## Porting Overview
 
 - **Original Project**: [dns.toys (Go)](https://github.com/knadh/dns.toys) by
   [@knadh](https://github.com/knadh)
@@ -14,7 +14,7 @@ This document tracks the progress of porting the original Go-based
 - **Status**: Active porting phase
 - **Last Updated**: August 17 2025
 
-## 📋 Core Infrastructure
+## Core Infrastructure
 
 - [x] Project structure setup
 - [x] Cargo.toml configuration
@@ -33,7 +33,7 @@ This document tracks the progress of porting the original Go-based
 - [ ] Rate limiting
 - [ ] Health checks
 
-## 🛠️ Services
+## Services
 
 > **Note:** The file names listed below are tentative and may change as the project evolves. Any
 > updates to file names will be reflected here.
@@ -133,14 +133,14 @@ This document tracks the progress of porting the original Go-based
   - [ ] Multiple coordinate formats
   - [ ] Performance optimization
 
-## 🧪 Testing & Quality
+## Testing & Quality
 
 - [ ] Unit tests for all services
 - [ ] Integration tests
 - [ ] Error handling tests
 - [ ] API compatibility tests
 
-## 📚 Documentation
+## Documentation
 
 - [x] README.md
 - [x] CONTRIBUTING.md
@@ -153,7 +153,7 @@ This document tracks the progress of porting the original Go-based
 - [ ] Performance tuning guide
 - [ ] Troubleshooting guide
 
-## 📊 Progress Tracking
+## Progress Tracking
 
 - **Core Infrastructure**: 20% complete
 - **Services**: 0% complete
@@ -161,7 +161,7 @@ This document tracks the progress of porting the original Go-based
 - **Documentation**: 40% complete
 - **Deployment**: 0% complete
 
-## 📝 Notes
+## Notes
 
 - This checklist is updated as progress is made
 - Priority is given to core functionality over advanced features

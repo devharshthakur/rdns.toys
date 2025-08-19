@@ -136,4 +136,4 @@ Given that this is a technical project involving porting from Go to Rust, I enco
 - Helpful explanations for newcomers to Rust
 - Patience with those learning the language or the project
 
-Remember: We're all here to learn and contribute to making this Rust port the best it can be! 🦀
+Remember: We're all here to learn and contribute to making this Rust port the best it can be!
