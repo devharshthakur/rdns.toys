@@ -39,11 +39,12 @@ range of contributions including new services and features.
 
 ### ❌ Not Accepted (During Porting Phase)
 
-- **New Services**: Do not add new DNS services that weren't in the original Go version
-- **New Features**: Do not add features that weren't present in the original dns.toys
-- **Architecture Changes**: Do not propose major architectural changes unless they're necessary for
-  the Rust port
-- **Breaking Changes**: Do not make changes that break existing functionality
+1. **New Services**: Do not add new DNS services that weren't in the original Go version
+2. **New Features**: Do not add features that weren't present in the original dns.toys
+   \*\*Architecture
+3. **Changes**: Do not propose major architectural changes unless they're necessary for the Rust
+   port
+4. **Breaking Changes**: Do not make changes that break existing functionality
 
 _Note: These restrictions are temporary during the porting phase. Once the initial port is complete,
 new services and features will be welcome._
@@ -52,11 +53,11 @@ new services and features will be welcome._
 
 ### Prerequisites
 
-- Rust 1.70+ (edition 2021)
-- Cargo package manager
-- Git
-- Node.js 18+ (for formatting)
-- Just command runner (optional but recommended)
+- [x] Rust 1.70+ (edition 2021)
+- [x] Cargo package manager
+- [x] Git
+- [x] Node.js 18+ (for formatting)
+- [x] Just command runner (optional but recommended)
 
 ### Development Setup
 
@@ -110,7 +111,7 @@ new services and features will be welcome._
    cargo clippy
    cargo fmt
 
-   # Markdown and config file formatting
+   # Markdown files formatting
    pnpm format
    ```
 
@@ -137,10 +138,10 @@ just build-release
 just run
 
 # Run in release mode
-just run-release
+just runr
 
 # Check formatting
-just fmt-check
+just fmtc
 
 # Format code and Markdown files
 just format
@@ -181,9 +182,9 @@ cargo clippy
 - Use Prettier for formatting Markdown, JSON, and TOML files
 - Install dependencies: `pnpm install`
 - Format all files: `pnpm format`
-- Format only Markdown: `pnpm format:md`
 - Check formatting: `pnpm format:check`
-- VS Code users: Install the Prettier extension for automatic formatting on save
+  > **Note:** VS Code users should install the Prettier extension to enable automatic formatting on
+  > save.
 
 ## Pull Request Process
 
