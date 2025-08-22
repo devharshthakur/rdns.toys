@@ -10,12 +10,8 @@
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "[toml]": {
+  "[rust]": {
     "editor.formatOnSave": true,
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "prettier.requireConfig": true,
-  "files.associations": {
-    "*.toml": "toml"
+    "editor.defaultFormatter": "rust-lang.rust-analyzer"
   }
 }

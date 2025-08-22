@@ -6,10 +6,10 @@ This is the project setup guide which will help you get RDNS Toys up and running
 
 ### Prerequisites
 
-- Rust 1.70+ (edition 2021)
-- Cargo package manager
-- Node.js 18+ (for formatting)
-- Just command runner (optional but recommended)
+- [x] Rust 1.70+ (edition 2021)
+- [x] Cargo package manager
+- [x] Node.js 18+ (for formatting)
+- [x] Just command runner (optional but recommended)
 
 ### Quick Start
 
@@ -20,7 +20,7 @@ This is the project setup guide which will help you get RDNS Toys up and running
    cd rdns_toys
    ```
 
-2. Install Just (optional but recommended):
+2. Install Just code runner (optional but recommended):
 
    ```bash
    # macOS

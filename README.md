@@ -10,6 +10,10 @@ provides a collection of utility services that can be accessed through DNS queri
 to get information like weather, currency conversion, time zones, and more directly from the command
 line or any DNS client.
 
+## Getting Started
+
+For installation, setup, and development instructions, please see the [Setup Guide](SETUP.md).
+
 ## Porting Status
 
 See the [Porting Checklist](PORTING_CHECKLIST.md) for detailed progress on the Go-to-Rust porting
@@ -27,10 +31,6 @@ contributions at this time. Please focus on:
 - Documentation improvements
 - Performance optimizations
 - Testing improvements
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
@@ -51,16 +51,10 @@ If you encounter any issues or have questions:
 - [Original dns.toys (Go)](https://github.com/knadh/dns.toys)
 - [dns.toys Website/docs](https://dns.toys)
 
----
-
 **Note**: This is a work in progress. The project is being actively ported from Go to Rust, and not
 all features may be available yet. Check the [Porting Checklist](PORTING_CHECKLIST.md) for current
 progress.
 
-## Getting Started
+## License
 
-For installation, setup, and development instructions, please see the [Setup Guide](SETUP.md).
-
-## Usage Examples
-
-Once project parts are finished it will be updated as project is in its early stages.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
