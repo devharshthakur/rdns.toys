@@ -12,7 +12,7 @@ line or any DNS client.
 
 ## Getting Started
 
-For installation, setup, and development instructions, please see the [Setup Guide](SETUP.md).
+For installation, setup, and development instructions, please see the [Setup Guide](md/SETUP.md).
 
 ## Porting Status
 

@@ -6,6 +6,7 @@
 
 use anyhow::{Context, Result};
 use chrono_tz::Tz;
+use hickory_proto::rr::Record;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use std::cmp::Reverse;
@@ -136,5 +137,11 @@ impl Geo {
         for locs in self.tz_map.values_mut() {
             locs.sort_unstable_by_key(|loc| Reverse(loc.population));
         }
+    }
+
+    pub fn query(&self, q: &str) -> Option<Vec<Record>> {
+        // Check for city/co format
+        let (query_str, country_filter) =
+            q.split_once('/').map_or((q, None), |(q, co)| (q, Some(co)));
     }
 }
