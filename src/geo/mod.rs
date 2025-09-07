@@ -12,7 +12,6 @@ use regex::Regex;
 use std::cmp::Reverse;
 use std::collections::HashMap;
 use std::fs::File;
-use std::io;
 use std::str::FromStr;
 
 #[derive(Debug, Clone)]
@@ -33,7 +32,7 @@ pub struct Geo {
     count: usize,
 }
 
-static RE_CLEAN: Lazy<Regex> = Lazy::new(|| Regex::new("[^a-z/]+").unwrap());
+static RE_CLEAN: Lazy<Regex> = Lazy::new(|| Regex::new("[^a-z/]+").unwrap()); // Regex for cleaning queries: from the go project
 
 impl Geo {
     pub fn new(file_path: &str) -> Result<Self> {
@@ -114,6 +113,17 @@ impl Geo {
         Ok(locations)
     }
 
+    /// Builds a searchable index (tz_map) from location data for fast geographic lookups.
+    ///
+    /// Creates two types of search keys for each location:
+    /// 1. Cleaned city names (e.g., "New York" -> "newyork")
+    /// 2. Timezone aliases (e.g., "America/New_York" -> "new_york")
+    ///
+    /// Locations are sorted by population within each key so larger cities appear first
+    /// when multiple cities share the same name.
+    ///
+    /// # Arguments
+    /// * `locations` - Vector of locations from `read_file()` to index
     pub fn load(&mut self, locations: Vec<Location>) {
         for loc in &locations {
             let name = RE_CLEAN
@@ -139,9 +149,67 @@ impl Geo {
         }
     }
 
-    pub fn query(&self, q: &str) -> Option<Vec<Record>> {
-        // Check for city/co format
-        let (query_str, country_filter) =
-            q.split_once('/').map_or((q, None), |(q, co)| (q, Some(co)));
+    /// Queries the geo database for locations matching the given search term.
+    ///
+    /// Supports optional country filtering using the format "city/country_code" where
+    /// the country code is a 2-letter ISO code (e.g., "london/gb", "paris/fr").
+    ///
+    /// # Arguments
+    /// * `q` - Search query, optionally with "/country_code" suffix
+    ///
+    /// # Returns
+    /// * `Some(Vec<Location>)` - Matching locations sorted by population (descending)
+    /// * `None` - No locations found for the query
+    ///
+    /// # Examples
+    /// ```ignore
+    /// // Search for all cities named "london"
+    /// let results = geo.query("london");
+    ///
+    /// // Search specifically for London in Great Britain
+    /// let results = geo.query("london/gb");
+    /// ```
+    pub fn query(&self, q: &str) -> Option<Vec<Location>> {
+        // Parse query - check for city/country format
+        let (query_str, country_filter) = if let Some((city, country)) = q.split_once('/') {
+            // Only treat as country filter if it's exactly 2 characters
+            if country.len() == 2 {
+                (city, Some(country.to_uppercase()))
+            } else {
+                (q, None)
+            }
+        } else {
+            (q, None)
+        };
+
+        // Clean the query string (remove non-alphabetic characters, convert to lowercase)
+        let cleaned_query = RE_CLEAN
+            .replace_all(&query_str.to_lowercase(), "")
+            .to_string();
+
+        // Look up locations by the cleaned query
+        let locations = self.tz_map.get(&cleaned_query)?;
+
+        // Filter by country if specified (Country filter)
+        if let Some(country) = country_filter {
+            let filtered: Vec<Location> = locations
+                .iter()
+                .filter(|loc| loc.country == country)
+                .cloned()
+                .collect();
+
+            if filtered.is_empty() {
+                None
+            } else {
+                Some(filtered)
+            }
+        } else {
+            // Return all matching locations (already sorted by population)
+            Some(locations.clone())
+        }
+    }
+
+    pub fn count(&self) -> usize {
+        self.count
     }
 }
