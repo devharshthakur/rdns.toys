@@ -6,7 +6,6 @@
 
 use anyhow::{Context, Result};
 use chrono_tz::Tz;
-use hickory_proto::rr::Record;
 use once_cell::sync::Lazy;
 use regex::Regex;
 use std::cmp::Reverse;
@@ -61,7 +60,7 @@ impl Geo {
     /// * `Result<Vec<Location>>` - A vector of parsed Location structs or an error
     pub fn read_file(file_path: &str) -> Result<Vec<Location>> {
         let file = File::open(file_path)?;
-        // Configure CSV reader for tab-delimited format without headers
+        // Configure CSV reader (rdr) for tab-delimited format without headers
         let mut rdr = csv::ReaderBuilder::new()
             .delimiter(b'\t')
             .has_headers(false)
@@ -113,7 +112,7 @@ impl Geo {
         Ok(locations)
     }
 
-    /// Builds a searchable index (tz_map) from location data for fast geographic lookups.
+    /// Builds a searchable index `tz_map` from location data for fast geographic lookups.
     ///
     /// Creates two types of search keys for each location:
     /// 1. Cleaned city names (e.g., "New York" -> "newyork")

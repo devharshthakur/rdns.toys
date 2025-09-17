@@ -16,8 +16,7 @@ For installation, setup, and development instructions, please see the [Setup Gui
 
 ## Porting Status
 
-See the [Porting Checklist](PORTING_CHECKLIST.md) for detailed progress on the Go-to-Rust porting
-effort.
+See the [Porting Checklist](md/CHECKLIST.md) for detailed progress on the Go-to-Rust porting effort.
 
 ## Contributing
 
@@ -48,8 +47,8 @@ If you encounter any issues or have questions:
 
 ## Projects Acknowlagements
 
-- [Original dns.toys (Go)](https://github.com/knadh/dns.toys)
-- [dns.toys Website/docs](https://dns.toys)
+- [Original dns.toys (Go) repository](https://github.com/knadh/dns.toys)
+- [dns.toys docs](https://dns.toys)
 
 **Note**: This is a work in progress. The project is being actively ported from Go to Rust, and not
 all features may be available yet. Check the [Porting Checklist](PORTING_CHECKLIST.md) for current
