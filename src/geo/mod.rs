@@ -124,27 +124,34 @@ impl Geo {
     /// # Arguments
     /// * `locations` - Vector of locations from `read_file()` to index
     pub fn load(&mut self, locations: Vec<Location>) {
-        for loc in &locations {
-            let name = RE_CLEAN
-                .replace_all(&loc.name.to_lowercase(), "")
-                .to_string();
-            self.tz_map.entry(name).or_default().push(loc.clone());
+        // Helper function to clean and normalize text for indexing
+        let clean_text =
+            |text: &str| -> String { RE_CLEAN.replace_all(&text.to_lowercase(), "").to_string() };
+
+        // Index each location by both city name and timezone alias
+        for location in &locations {
+            // Index by cleaned city name
+            let city_key = clean_text(&location.name);
+            self.tz_map
+                .entry(city_key)
+                .or_default()
+                .push(location.clone());
+
+            // Index by timezone city alias (e.g., "America/New_York" -> "new_york")
+            if let Some(city_alias) = location.timezone_name.split('/').nth(1) {
+                let alias_key = clean_text(city_alias);
+                self.tz_map
+                    .entry(alias_key)
+                    .or_default()
+                    .push(location.clone());
+            }
+
             self.count += 1;
         }
 
-        for loc in &locations {
-            if let Some(city_alias) = loc.timezone_name.split('/').nth(1) {
-                let cleaned_alias = RE_CLEAN
-                    .replace_all(&city_alias.to_string(), "")
-                    .to_string();
-                self.tz_map
-                    .entry(cleaned_alias)
-                    .or_insert_with(|| vec![loc.clone()]);
-            }
-        }
-
-        for locs in self.tz_map.values_mut() {
-            locs.sort_unstable_by_key(|loc| Reverse(loc.population));
+        // Sort all location lists by population (descending)
+        for location_list in self.tz_map.values_mut() {
+            location_list.sort_unstable_by_key(|loc| Reverse(loc.population));
         }
     }
 

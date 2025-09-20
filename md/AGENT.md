@@ -1,4 +1,4 @@
-# WARP.md
+# AGENT.md
 
 This file provides guidance to WARP (warp.dev) when working with code in this repository.
 
@@ -6,7 +6,7 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 This is a Rust port of the original [dns.toys](https://dns.toys) project - a DNS server that
 provides utility services accessible via DNS queries. The project is **currently in active porting
-phase** from Go to Rust and not all features are implemented yet.
+phase** from Go to Rust with core infrastructure and foundational services implemented.
 
 ## Development Commands
 
@@ -76,9 +76,11 @@ cargo test -- --nocapture
 
 ### Project Structure
 
-- **`src/main.rs`** - Entry point (minimal during porting phase)
-- **`src/handlers.rs`** - Core DNS request handler and service registry (~430 lines)
-- **`src/geo/mod.rs`** - Geolocation service for timezone lookups (~147 lines)
+- **`src/main.rs`** - Entry point (minimal placeholder during porting phase)
+- **`src/lib.rs`** - Library exports (geo, handlers, ifsc modules)
+- **`src/handlers.rs`** - Core DNS request handler and service registry (~431 lines)
+- **`src/geo/mod.rs`** - Geolocation service for timezone lookups (~222 lines)
+- **`src/ifsc/mod.rs`** - IFSC (Indian Financial System Code) service (~116 lines)
 - **`data/`** - Contains external data files required by services
 - **`justfile`** - Task runner configuration
 
@@ -101,6 +103,9 @@ The main architectural pattern is a **plugin-based service registry**:
 - `register()` - Adds services to the registry
 - `handle_ip_query()` - Built-in IP echo service (returns client's IP)
 - `handle_pi_query()` - Built-in Pi constant service
+- `process_service_request()` - Routes dynamic service queries
+- `clean_query()` - Sanitizes and extracts meaningful query portions
+- `create_response()` - Converts service responses to DNS records
 
 #### Geolocation Service (`src/geo/mod.rs`)
 
@@ -108,6 +113,14 @@ The main architectural pattern is a **plugin-based service registry**:
 - **`Geo` struct** - Manages location database with timezone-based indexing
 - **Data Source** - Parses geonames.org cities15000.txt file (tab-delimited)
 - **Search Strategy** - Indexes by city name and timezone aliases, sorted by population
+- **Query Support** - Location search with optional country filtering (e.g., "london/gb")
+
+#### IFSC Service (`src/ifsc/mod.rs`)
+
+- **`Branch` struct** - Represents Indian bank branch information
+- **`IFSC` struct** - Manages IFSC code database with fast lookups
+- **Data Source** - Loads JSON files containing IFSC code mappings
+- **Features** - Bank, branch, address, state, city, district information
 
 ### Service Architecture Pattern
 
@@ -126,17 +139,46 @@ Each DNS service follows this pattern:
 - **regex** - Query cleaning and validation
 - **chrono-tz** - Timezone handling for geolocation
 - **csv** - Parsing geonames.org data files
+- **serde/serde_json** - JSON serialization for IFSC data
+- **async-trait** - Async trait support for service implementations
+- **once_cell** - Lazy static initialization
+- **tracing** - Structured logging
 
 ## Project Status & Porting Context
 
 ### Current Phase
 
-The project is **actively being ported from Go to Rust**. According to the checklist:
+The project is **actively being ported from Go to Rust** with significant progress made:
 
-- Core Infrastructure: 20% complete
-- Services: 0% complete
-- Testing: 0% complete
-- Documentation: 40% complete
+- **Core Infrastructure**: 60% complete
+  - Service trait definition and async architecture
+  - DNS request handling and routing system
+  - Response formatting and error handling
+  - Query cleaning and sanitization
+  - Help system and service registry
+  - DNS server core (main.rs is placeholder)
+  - Configuration system
+  - Caching and rate limiting
+
+- **Services**: 25% complete
+  - IP echo service (built-in)
+  - Pi constant service (built-in)
+  - Geolocation service (full implementation)
+  - IFSC service (data loading and indexing)
+  - Timezone service (geo data ready, service wrapper needed)
+  - All other planned services
+
+- **Testing**: 0% complete
+  - No test files found
+  - Unit tests for services
+  - Integration tests
+
+- **Documentation**: 70% complete
+  - Comprehensive code documentation
+  - Architecture documentation
+  - Setup and contributing guides
+  - API documentation
+  - Service-specific documentation
 
 ### Contribution Guidelines
 
@@ -154,24 +196,41 @@ The project is **actively being ported from Go to Rust**. According to the check
 - Major architectural changes
 - Breaking changes
 
-### Planned Services (from CHECKLIST.md)
+### Implemented vs Planned Services
 
-The project will eventually implement these services:
+#### Currently Implemented
 
-- **Simple**: base conversion, pi, IP echo, random numbers/dice
+- **IP Echo Service** - Returns client's IP address (IPv4/IPv6 support)
+- **Pi Service** - Mathematical constant π in multiple formats (TXT, A, AAAA records)
+- **Geolocation Service** - City/timezone lookups with population-based sorting
+- **IFSC Service** - Indian bank branch information lookup
+
+#### Partially Implemented
+
+- **Timezone Service** - Geo data loaded, needs service wrapper implementation
+
+#### Planned Services (from CHECKLIST.md)
+
+- **Simple**: base conversion, random numbers/dice
 - **Data-driven**: units conversion, dictionary (WordNet), excuses
-- **External API**: weather (OpenWeatherMap), currency (FX rates), timezones
+- **External API**: weather (OpenWeatherMap), currency (FX rates)
 - **Advanced**: UUID generation, Sudoku solver, aerial distance calculations
 
 ### Data Dependencies
 
 Services require external data files in `data/`:
 
-- `cities15000.txt` - Geonames city database for timezone service
+#### Currently Used
+
+- `cities15000.txt` - Geonames city database for geolocation service
+- `ifsc/` directory - Indian banking IFSC codes (JSON format)
+
+#### Planned Dependencies
+
 - `wordnet/` directory - WordNet lexical database for dictionary service
-- `ifsc/` directory - Indian banking IFSC codes
 - `excuses.txt` - Developer excuse collection
 - `vitamins.json` - Vitamin/nutrition information
+- `units.json` - Unit conversion data
 
 ## Development Workflow
 
@@ -183,7 +242,7 @@ Services require external data files in `data/`:
 
 ### Prerequisites
 
-- Rust 1.70+ (edition 2021)
+- Rust 1.70+ (edition 2024)
 - Node.js 18+ (for Prettier formatting)
 - Cargo package manager
 - Just command runner (recommended)
