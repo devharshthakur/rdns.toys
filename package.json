@@ -1,28 +1,27 @@
 {
-  "name": "rdns-toys",
-  "version": "1.0.0",
-  "description": "DNS Toys - Rust Port - A DNS server providing utility services",
-  "private": true,
-  "scripts": {
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
-    "clean": "rimraf node_modules"
-  },
-  "devDependencies": {
-    "prettier": "^3.6.2",
-    "prettier-plugin-toml": "^2.0.6",
-    "rimraf": "^6.0.1"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  },
-  "keywords": [
-    "dns",
-    "rust",
-    "utilities",
-    "server",
-    "port"
-  ],
-  "author": "devharshthakur",
-  "license": "MIT"
+	"name": "rdns-toys",
+	"version": "1.0.0",
+	"description": "DNS Toys - Rust Port - A DNS server providing utility services",
+	"private": true,
+	"scripts": {
+		"format": "biome format --write .",
+		"format:check": "biome format . --skip-parse-errors",
+		"clean": "rimraf node_modules"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "2.2.4",
+		"rimraf": "^6.0.1"
+	},
+	"engines": {
+		"node": ">=18.0.0"
+	},
+	"keywords": [
+		"dns",
+		"rust",
+		"utilities",
+		"server",
+		"port"
+	],
+	"author": "devharshthakur",
+	"license": "MIT"
 }
