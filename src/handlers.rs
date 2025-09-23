@@ -110,6 +110,7 @@ impl DnsHandlers {
             format!("dig TXT ip.{}", domain),
             format!("dig A pi.{}", domain),
             format!("dig TXT <location>.time.{}", domain),
+            format!("dig TXT <number>.uuid.{}", domain),
             format!("dig TXT help.{}", domain),
         ];
         let mut records = Vec::new();
@@ -426,5 +427,56 @@ impl DnsHandlers {
                 new_record
             })
             .collect()
+    }
+
+    /// Main DNS request handler that routes queries to appropriate services.
+    ///
+    /// This is the entry point for all DNS queries. It determines which service
+    /// to use based on the query name and delegates to the appropriate handler.
+    ///
+    /// ## Arguments
+    /// * `request` - The incoming DNS request
+    ///
+    /// ## Returns
+    /// * `Ok(Vec<Record>)` - Vector of DNS records to return to the client
+    /// * `Err(anyhow::Error)` - If request processing fails
+    pub async fn handle_request(&self, request: &Request) -> Result<Vec<Record>> {
+        if request.queries().is_empty() {
+            return Err(anyhow!("No queries in request"));
+        }
+
+        let query = &request.queries()[0];
+        let query_name = query.name();
+        let query_type = query.query_type();
+        let query_str = query_name.to_string();
+
+        // Handle help queries
+        if query_str.ends_with(&format!("help.{}", self.domain.to_string())) {
+            return Ok(self.handle_help_query(query_name));
+        }
+
+        // Handle IP service queries
+        if query_str.ends_with(&format!("ip.{}", self.domain.to_string())) {
+            if let Some(record) = self.handle_ip_query(request, query_name, query_type).await {
+                return Ok(vec![record]);
+            }
+        }
+
+        // Handle Pi service queries
+        if query_str.ends_with(&format!("pi.{}", self.domain.to_string())) {
+            if let Some(record) = self.handle_pi_query(query_name, query_type).await {
+                return Ok(vec![record]);
+            }
+        }
+
+        // Handle service queries (uuid, time, etc.)
+        for (suffix, _) in &self.services {
+            if query_str.ends_with(&format!(".{}.{}", suffix, self.domain.to_string())) {
+                return self.process_service_request(request, suffix).await;
+            }
+        }
+
+        // Handle unknown queries
+        Ok(vec![self.handle_default_query(query_name)])
     }
 }
