@@ -30,13 +30,13 @@ t: test
 
 # Check Rust formatting
 format-check:
-    pnpm format:check
     cargo fmt -- --check
+    biome format . --skip-parse-errors
 
 # Format Markdown and config files
 format:
     cargo fmt
-    pnpm format
+    biome format --write .
 
 # Alias for format
 fmt: format

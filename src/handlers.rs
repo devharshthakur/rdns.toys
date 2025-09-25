@@ -330,7 +330,8 @@ impl DnsHandlers {
     /// assert_eq!(cleaned, "mumbai");
     /// ```
     pub fn clean_query(query: &str, suffix: &str) -> String {
-        let trimmed = query.trim_end_matches(suffix).trim_end_matches('.');
+        let without_trailing_dot = query.trim_end_matches('.');
+        let trimmed = without_trailing_dot.trim_end_matches(suffix);
         RE_CLEAN.replace_all(trimmed, "").to_string()
     }
 
@@ -450,31 +451,46 @@ impl DnsHandlers {
         let query_type = query.query_type();
         let query_str = query_name.to_string();
 
+        tracing::info!(
+            "Handling request - query_str: '{}', domain: '{}'",
+            query_str,
+            self.domain.to_string()
+        );
+
         // Handle help queries
         if query_str.ends_with(&format!("help.{}", self.domain.to_string())) {
             return Ok(self.handle_help_query(query_name));
         }
 
         // Handle IP service queries
-        if query_str.ends_with(&format!("ip.{}", self.domain.to_string())) {
+        if query_str.ends_with(&format!(".ip.{}", self.domain.to_string())) {
             if let Some(record) = self.handle_ip_query(request, query_name, query_type).await {
                 return Ok(vec![record]);
             }
         }
 
         // Handle Pi service queries
-        if query_str.ends_with(&format!("pi.{}", self.domain.to_string())) {
+        if query_str.ends_with(&format!(".pi.{}", self.domain.to_string())) {
             if let Some(record) = self.handle_pi_query(query_name, query_type).await {
                 return Ok(vec![record]);
             }
         }
 
         // Handle service queries (uuid, time, etc.)
+        tracing::debug!("Checking services for query: '{}'", query_str);
         for (suffix, _) in &self.services {
-            if query_str.ends_with(&format!(".{}.{}", suffix, self.domain.to_string())) {
+            let expected = format!(".{}.{}.", suffix, self.domain.to_string());
+            tracing::debug!(
+                "  Checking suffix '{}' with expected ends_with: '{}'",
+                suffix,
+                expected
+            );
+            if query_str.ends_with(&expected) {
+                tracing::debug!("  Match found for suffix: '{}'", suffix);
                 return self.process_service_request(request, suffix).await;
             }
         }
+        tracing::debug!("No service matched, returning default error");
 
         // Handle unknown queries
         Ok(vec![self.handle_default_query(query_name)])
