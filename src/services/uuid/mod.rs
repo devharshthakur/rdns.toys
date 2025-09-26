@@ -4,6 +4,8 @@ use std::str::FromStr;
 use uuid::Uuid;
 
 use crate::handlers::Service;
+use hickory_proto::rr::{Name, RData, Record, RecordType, rdata};
+use hickory_server::server::Request;
 
 /// UUID service that generates random UUIDs based on DNS queries.
 ///
@@ -35,7 +37,7 @@ impl UUidService {
     /// # Returns
     /// * `Ok(Vec<String>)` - Vector of UUID strings
     /// * `Err(anyhow::Error)` - If the query format is invalid or exceeds max_results
-    fn generate_uuids(&self, query: &str) -> Result<Vec<String>> {
+    async fn generate_uuids(&self, query: &str) -> Result<Vec<String>> {
         // Parse the number from the query
         let num = if query.is_empty() {
             1
@@ -62,9 +64,37 @@ impl UUidService {
 
 #[async_trait]
 impl Service for UUidService {
-    /// Handle a cleaned query string and return response strings for DNS records.
-    async fn query(&self, query: &str) -> Result<Vec<String>> {
-        self.generate_uuids(query)
+    /// Handle a DNS query and return DNS records directly.
+    /// For UUID service, this only supports TXT records with the cleaned query parameter.
+    async fn query(
+        &self,
+        _request: &Request,
+        query_name: &Name,
+        query_type: RecordType,
+        cleaned_query: &str,
+    ) -> Option<Vec<Record>> {
+        // UUID service only supports TXT records
+        if query_type != RecordType::TXT {
+            return None;
+        }
+
+        // Generate UUIDs based on the cleaned query
+        let uuids_result = self.generate_uuids(cleaned_query).await;
+        if uuids_result.is_ok() {
+            let uuids = uuids_result.unwrap();
+            let mut records = Vec::new();
+            for uuid in uuids {
+                let record = Record::from_rdata(
+                    query_name.clone(),
+                    60, // TTL
+                    RData::TXT(rdata::TXT::new(vec![uuid])),
+                );
+                records.push(record);
+            }
+            Some(records)
+        } else {
+            None
+        }
     }
 
     /// Export raw service data for debugging or monitoring.

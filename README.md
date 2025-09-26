@@ -25,17 +25,17 @@ Please read my [Contributing Guidelines](CONTRIBUTING.md) before submitting any 
 **Important**: This project is currently in active porting phase. I am not accepting new feature
 contributions at this time. Please focus on:
 
-- Bug fixes
-- Code quality improvements
-- Documentation improvements
-- Performance optimizations
-- Testing improvements
+- [x] Bug fixes
+- [x] Code quality improvements
+- [x] Documentation improvements
+- [x] Performance optimizations
+- [x] Testing improvements
 
 ## Acknowledgments
 
-- Original [dns.toys](https://dns.toys) project by [@knadh](https://github.com/knadh)
-- The Rust community for excellent tooling and libraries
-- All contributors to this porting effort
+1. Original [dns.toys](https://dns.toys) project by [@knadh](https://github.com/knadh)
+2. The Rust community for excellent tooling and libraries
+3. All contributors to this porting effort
 
 ## Support
 

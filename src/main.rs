@@ -1,11 +1,13 @@
+use std::iter;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr};
 use std::str::FromStr;
 
 use anyhow::Result;
-// Removed unused imports
+
+use hickory_proto::op::Header;
 use hickory_proto::rr::LowerName;
 use hickory_server::authority::MessageResponseBuilder;
-// Removed unused Arc import
+
 use tokio::net::UdpSocket;
 
 use hickory_server::{
@@ -14,9 +16,10 @@ use hickory_server::{
 };
 
 use rdns_toys::handlers::DnsHandlers;
-use rdns_toys::services::uuid::UUidService;
+use rdns_toys::services;
 
-/// Custom request handler for Rdns Project : It is best way to integrate our own DnsHandler with the hickory server
+/// Custom request handler for Rdns Project
+//It is best way to integrate our own DnsHandler with the hickory server
 pub struct RdnsRequestHandler {
     handlers: DnsHandlers,
 }
@@ -25,36 +28,47 @@ impl RdnsRequestHandler {
     pub fn new(handlers: DnsHandlers) -> Self {
         Self { handlers }
     }
+
+    /// Creates a response header with minimal configuration.
+    /// Uses the built-in response_from_request which already handles most fields
+    fn create_response_header(&self, request: &Request, is_error: bool) -> Header {
+        let mut header = Header::response_from_request(request.header());
+        header.set_authoritative(true);
+        header.set_recursion_available(false);
+
+        if is_error {
+            header.set_response_code(hickory_proto::op::ResponseCode::ServFail);
+        }
+
+        header
+    }
 }
 
 #[async_trait::async_trait]
 impl RequestHandler for RdnsRequestHandler {
+    /// Handles incoming DNS requests by routing them to appropriate services and sending responses.
+    ///
+    /// Processes requests through the DnsHandlers, creates proper DNS response headers,
+    /// and sends the response back to the client. Uses built-in Hickory functions for
+    /// simplified header construction.
     async fn handle_request<R: ResponseHandler>(
         &self,
         request: &Request,
         mut response_handle: R,
     ) -> ResponseInfo {
         // Process the request using our custom handlers
-        match self.handlers.handle_request(request).await {
+        match self.handlers.process_dns_query(request).await {
             Ok(records) => {
-                // Create a response header
-                let mut response_header =
-                    hickory_proto::op::Header::response_from_request(request.header());
-                response_header.set_id(request.id());
-                response_header.set_message_type(hickory_proto::op::MessageType::Response);
-                response_header.set_op_code(hickory_proto::op::OpCode::Query);
-                response_header.set_authoritative(true);
-                response_header.set_recursion_available(false);
-                response_header.set_recursion_desired(request.recursion_desired());
-                response_header.set_checking_disabled(request.checking_disabled());
+                // Create response header using built-in function (much simpler!)
+                let response_header = self.create_response_header(request, false);
 
                 // Create a MessageResponse with the records
                 let response = MessageResponseBuilder::from_message_request(request).build(
                     response_header,
                     records.iter(),
-                    std::iter::empty(),
-                    std::iter::empty(),
-                    std::iter::empty(),
+                    iter::empty(),
+                    iter::empty(),
+                    iter::empty(),
                 );
 
                 // Send the response
@@ -63,23 +77,14 @@ impl RequestHandler for RdnsRequestHandler {
                     .await
                     .unwrap_or_else(|_err| {
                         tracing::error!("Failed to send response");
-                        ResponseInfo::from(hickory_proto::op::Header::new())
+                        ResponseInfo::from(Header::new())
                     })
             }
             Err(err) => {
                 tracing::error!("Error handling request: {}", err);
 
-                // Create an error response header
-                let mut response_header =
-                    hickory_proto::op::Header::response_from_request(request.header());
-                response_header.set_id(request.id());
-                response_header.set_message_type(hickory_proto::op::MessageType::Response);
-                response_header.set_op_code(hickory_proto::op::OpCode::Query);
-                response_header.set_response_code(hickory_proto::op::ResponseCode::ServFail);
-                response_header.set_authoritative(true);
-                response_header.set_recursion_available(false);
-                response_header.set_recursion_desired(request.recursion_desired());
-                response_header.set_checking_disabled(request.checking_disabled());
+                // Create error response header using built-in function
+                let response_header = self.create_response_header(request, true);
 
                 // Create an error MessageResponse with no records
                 let response = MessageResponseBuilder::from_message_request(request)
@@ -89,7 +94,7 @@ impl RequestHandler for RdnsRequestHandler {
                 response_handle
                     .send_response(response)
                     .await
-                    .unwrap_or_else(|_e| {
+                    .unwrap_or_else(|_err| {
                         tracing::error!("Failed to send error response");
                         ResponseInfo::from(hickory_proto::op::Header::new())
                     })
@@ -100,8 +105,11 @@ impl RequestHandler for RdnsRequestHandler {
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Initialize tracing
-    tracing_subscriber::fmt::init();
+    // Initialize tracing only in debug builds
+    #[cfg(debug_assertions)]
+    {
+        tracing_subscriber::fmt::init();
+    }
 
     let domain = "localhost";
     let port = 8053;
@@ -112,15 +120,8 @@ async fn main() -> Result<()> {
     let domain_name = LowerName::from_str(domain)?;
     let mut handlers = DnsHandlers::new(domain_name.clone())?;
 
-    // Register UUID service
-    let uuid_service = UUidService::new(10); // Max 10 UUIDs per query
-    handlers.register("uuid".to_string(), Box::new(uuid_service));
-
-    println!("✅ Registered UUID service");
-    println!(" Test commands:");
-    println!("   dig TXT uuid.{} @127.0.0.1 -p {}", domain, port);
-    println!("   dig TXT 5.uuid.{} @127.0.0.1 -p {}", domain, port);
-    println!("   dig TXT help.{} @127.0.0.1 -p {}", domain, port);
+    // Register all services
+    services::register_services(&mut handlers)?;
 
     // Create our custom request handler
     let request_handler = RdnsRequestHandler::new(handlers);
