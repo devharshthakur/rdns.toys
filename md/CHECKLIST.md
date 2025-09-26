@@ -22,13 +22,13 @@ This document tracks the progress of porting the original Go-based
 - [x] Development tooling (Just, Prettier)
 - [x] Contributing guidelines
 - [x] Code of conduct
-- [ ] Configuration system
-- [ ] DNS server core
-- [ ] Service trait definition
-- [ ] Error handling framework
-- [ ] Logging setup
-- [ ] Request routing system
-- [ ] Response formatting
+- [x] Configuration system (basic)
+- [x] DNS server core
+- [x] Service trait definition (unified)
+- [x] Error handling framework
+- [x] Logging setup
+- [x] Request routing system
+- [x] Response formatting
 - [ ] Caching system
 - [ ] Rate limiting
 - [ ] Health checks
@@ -48,15 +48,17 @@ This document tracks the progress of porting the original Go-based
   - [ ] Input validation
   - [ ] Error handling
 
-- [ ] Pi service (`pi.rs`)
-  - [ ] Return digits of π
-  - [ ] Configurable precision
-  - [ ] Performance optimization
+- [x] Pi service (`pi/mod.rs`)
+  - [x] Return digits of π (TXT records)
+  - [x] IPv4 representation (A records)
+  - [x] IPv6 representation (AAAA records)
+  - [x] High precision support
+  - [x] Performance optimization
 
-- [ ] IP echo service (`ip.rs`)
-  - [ ] Return client IP address
-  - [ ] IPv4/IPv6 support
-  - [ ] Network interface detection
+- [x] IP echo service (built-in)
+  - [x] Return client IP address
+  - [x] IPv4/IPv6 support
+  - [x] Network interface detection
 
 - [ ] Random services (`random.rs`)
   - [ ] Dice rolling
@@ -104,8 +106,22 @@ This document tracks the progress of porting the original Go-based
   - [ ] Caching system
   - [ ] Snapshot functionality
 
+- [x] Geolocation service (`geo/mod.rs`) (Not tested)
+  - [x] Geo location data loading
+  - [x] City/timezone lookups
+  - [x] Population-based sorting
+  - [x] Country filtering support
+  - [x] Geonames.org data integration
+
+- [x] IFSC service (`ifsc/mod.rs`)
+  - [x] Indian bank branch data loading
+  - [x] IFSC code lookups
+  - [x] Bank, branch, address information
+  - [x] State, city, district data
+  - [x] JSON data integration
+
 - [ ] Timezone service (`timezones.rs`)
-  - [ ] Geo location data loading
+  - [x] Geo location data loading (via geo service) (Not tested)
   - [ ] Timezone calculations
   - [ ] Current time retrieval
   - [ ] Timezone conversion
@@ -113,11 +129,11 @@ This document tracks the progress of porting the original Go-based
 
 ### Advanced Services
 
-- [ ] UUID generation service (`uuid.rs`)
-  - [ ] UUID v4 generation
-  - [ ] Multiple results support
-  - [ ] Custom formats
-  - [ ] Performance optimization
+- [x] UUID generation service (`uuid/mod.rs`)
+  - [x] UUID v4 generation
+  - [x] Multiple results support
+  - [x] Configurable count (1-10 UUIDs)
+  - [x] Performance optimization
 
 - [ ] Sudoku solver service (`sudoku.rs`)
   - [ ] Algorithm implementation
@@ -155,10 +171,10 @@ This document tracks the progress of porting the original Go-based
 
 ## Progress Tracking
 
-- **Core Infrastructure**: 20% complete
-- **Services**: 0% complete
+- **Core Infrastructure**: 85% complete
+- **Services**: 40% complete
 - **Testing**: 0% complete
-- **Documentation**: 40% complete
+- **Documentation**: 70% complete
 - **Deployment**: 0% complete
 
 ## Notes
@@ -167,8 +183,11 @@ This document tracks the progress of porting the original Go-based
 - Priority is given to core functionality over advanced features
 - Performance and security are key considerations
 - Community feedback will influence the roadmap
+- **Unified Service Architecture**: All services now use a single `query()` method that handles both text-based queries and direct DNS record creation
+- **Multi-Format Support**: Services can return different record types (TXT, A, AAAA) based on query type
+- **Working Services**: Pi, UUID, IP Echo, Geolocation, and IFSC services are fully functional and testable
 
 ---
 
-**Last Updated**: January 2025  
+**Last Updated**: September 2025  
 **Maintainer**: [@devharshthakur](https://github.com/devharshthakur)

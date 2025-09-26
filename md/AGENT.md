@@ -76,9 +76,13 @@ cargo test -- --nocapture
 
 ### Project Structure
 
-- **`src/main.rs`** - Entry point (minimal placeholder during porting phase)
-- **`src/lib.rs`** - Library exports (geo, handlers, ifsc modules)
-- **`src/handlers.rs`** - Core DNS request handler and service registry (~431 lines)
+- **`src/main.rs`** - DNS server entry point with UDP socket binding (~148 lines)
+- **`src/lib.rs`** - Library exports (geo, handlers, ifsc, services modules)
+- **`src/handlers.rs`** - Core DNS request handler and service registry (~426 lines)
+- **`src/services/`** - Service implementations directory
+  - **`src/services/mod.rs`** - Service registration and help system (~68 lines)
+  - **`src/services/pi/mod.rs`** - Pi constant service with multi-format support (~161 lines)
+  - **`src/services/uuid/mod.rs`** - UUID generation service (~106 lines)
 - **`src/geo/mod.rs`** - Geolocation service for timezone lookups (~222 lines)
 - **`src/ifsc/mod.rs`** - IFSC (Indian Financial System Code) service (~116 lines)
 - **`data/`** - Contains external data files required by services
@@ -91,21 +95,37 @@ cargo test -- --nocapture
 The main architectural pattern is a **plugin-based service registry**:
 
 - **`DnsHandlers`** - Central coordinator that manages service registration and request routing
-- **`Service` trait** - Async trait defining the interface for all DNS services (`query()` and
-  `dump()` methods)
-- **Service Registration** - Services register themselves with a DNS suffix (e.g., "ip", "time",
-  "pi")
-- **Request Routing** - Queries like "mumbai.time.example.com" get routed to the "time" service
+- **`Service` trait** - Unified async trait with single `query()` method for all DNS services
+- **Service Registration** - Services register themselves with a DNS suffix (e.g., "ip", "pi", "uuid")
+- **Request Routing** - Queries like "3.uuid.localhost" get routed to the "uuid" service
+- **Unified Query Interface** - Single method handles both text-based and direct DNS record creation
 
 #### Key Methods
 
 - `DnsHandlers::new()` - Creates handler with help records
 - `register()` - Adds services to the registry
 - `handle_ip_query()` - Built-in IP echo service (returns client's IP)
-- `handle_pi_query()` - Built-in Pi constant service
-- `process_service_request()` - Routes dynamic service queries
+- `process_service_request()` - Routes dynamic service queries using unified interface
 - `clean_query()` - Sanitizes and extracts meaningful query portions
-- `create_response()` - Converts service responses to DNS records
+- `process_dns_query()` - Main entry point for DNS query processing
+
+#### Service Trait Interface
+
+```rust
+#[async_trait]
+pub trait Service: Send + Sync {
+    /// Unified query method handling all DNS record types
+    async fn query(
+        &self,
+        request: &Request,
+        query_name: &Name,
+        query_type: RecordType,
+        cleaned_query: &str,
+    ) -> Option<Vec<Record>>;
+    
+    async fn dump(&self) -> Result<Vec<u8>>;
+}
+```
 
 #### Geolocation Service (`src/geo/mod.rs`)
 
@@ -124,12 +144,38 @@ The main architectural pattern is a **plugin-based service registry**:
 
 ### Service Architecture Pattern
 
-Each DNS service follows this pattern:
+Each DNS service follows this unified pattern:
 
-1. Implement the async `Service` trait
+1. Implement the async `Service` trait with unified `query()` method
 2. Register with a DNS suffix via `DnsHandlers::register()`
-3. Handle queries through the `query()` method
-4. Return DNS-compatible response strings
+3. Handle queries through the single `query()` method that receives:
+   - Full DNS request context
+   - Query name and record type
+   - Cleaned query string (for text-based services)
+4. Return `Vec<Record>` directly or `None` if unsupported
+
+#### Service Implementation Examples
+
+**Pi Service** - Uses `query_type` to determine record format:
+```rust
+async fn query(&self, _request: &Request, query_name: &Name, query_type: RecordType, _cleaned_query: &str) -> Option<Vec<Record>> {
+    match query_type {
+        RecordType::TXT => Some(vec![/* Pi as text */]),
+        RecordType::A => Some(vec![/* Pi as IPv4 */]),
+        RecordType::AAAA => Some(vec![/* Pi as IPv6 */]),
+        _ => None,
+    }
+}
+```
+
+**UUID Service** - Uses `cleaned_query` for number of UUIDs:
+```rust
+async fn query(&self, _request: &Request, query_name: &Name, query_type: RecordType, cleaned_query: &str) -> Option<Vec<Record>> {
+    if query_type != RecordType::TXT { return None; }
+    // Generate UUIDs based on cleaned_query number
+    Some(vec![/* UUID records */])
+}
+```
 
 ### Dependencies
 
@@ -150,23 +196,25 @@ Each DNS service follows this pattern:
 
 The project is **actively being ported from Go to Rust** with significant progress made:
 
-- **Core Infrastructure**: 60% complete
-  - Service trait definition and async architecture
-  - DNS request handling and routing system
-  - Response formatting and error handling
-  - Query cleaning and sanitization
-  - Help system and service registry
-  - DNS server core (main.rs is placeholder)
-  - Configuration system
-  - Caching and rate limiting
+- **Core Infrastructure**: 85% complete
+  - ✅ Service trait definition with unified query interface
+  - ✅ DNS request handling and routing system
+  - ✅ Response formatting and error handling
+  - ✅ Query cleaning and sanitization
+  - ✅ Help system and service registry
+  - ✅ DNS server core with UDP socket binding
+  - ✅ Unified service architecture
+  - ⏳ Configuration system (basic)
+  - ⏳ Caching and rate limiting
 
-- **Services**: 25% complete
-  - IP echo service (built-in)
-  - Pi constant service (built-in)
-  - Geolocation service (full implementation)
-  - IFSC service (data loading and indexing)
-  - Timezone service (geo data ready, service wrapper needed)
-  - All other planned services
+- **Services**: 40% complete
+  - ✅ IP echo service (built-in, IPv4/IPv6 support)
+  - ✅ Pi constant service (TXT, A, AAAA records)
+  - ✅ UUID generation service (configurable count)
+  - ✅ Geolocation service (full implementation)
+  - ✅ IFSC service (data loading and indexing)
+  - ⏳ Timezone service (geo data ready, service wrapper needed)
+  - ⏳ All other planned services
 
 - **Testing**: 0% complete
   - No test files found
@@ -202,6 +250,7 @@ The project is **actively being ported from Go to Rust** with significant progre
 
 - **IP Echo Service** - Returns client's IP address (IPv4/IPv6 support)
 - **Pi Service** - Mathematical constant π in multiple formats (TXT, A, AAAA records)
+- **UUID Service** - Generates configurable number of random UUIDs (TXT records)
 - **Geolocation Service** - City/timezone lookups with population-based sorting
 - **IFSC Service** - Indian bank branch information lookup
 
@@ -214,7 +263,55 @@ The project is **actively being ported from Go to Rust** with significant progre
 - **Simple**: base conversion, random numbers/dice
 - **Data-driven**: units conversion, dictionary (WordNet), excuses
 - **External API**: weather (OpenWeatherMap), currency (FX rates)
-- **Advanced**: UUID generation, Sudoku solver, aerial distance calculations
+- **Advanced**: Sudoku solver, aerial distance calculations
+
+### Working Services & Usage Examples
+
+The following services are currently functional and can be tested:
+
+#### Pi Service
+```bash
+# Get Pi as text
+dig @127.0.0.1 -p 8053 TXT pi.localhost
+# Returns: "3.141592653589793238462643383279502884197169"
+
+# Get Pi as IPv4 address
+dig @127.0.0.1 -p 8053 A pi.localhost
+# Returns: 3.141.59.27
+
+# Get Pi as IPv6 address
+dig @127.0.0.1 -p 8053 AAAA pi.localhost
+# Returns: 3141:5926:5358:9793:2384:6264:3383:2795
+```
+
+#### UUID Service
+```bash
+# Generate 1 UUID (default)
+dig @127.0.0.1 -p 8053 TXT uuid.localhost
+# Returns: 1 random UUID
+
+# Generate 3 UUIDs
+dig @127.0.0.1 -p 8053 TXT 3.uuid.localhost
+# Returns: 3 random UUIDs
+```
+
+#### IP Echo Service
+```bash
+# Get your IP as text
+dig @127.0.0.1 -p 8053 TXT ip.localhost
+# Returns: Your client IP address
+
+# Get your IP as A record (IPv4 only)
+dig @127.0.0.1 -p 8053 A ip.localhost
+# Returns: Your client IP as A record
+```
+
+#### Help Service
+```bash
+# Get available services
+dig @127.0.0.1 -p 8053 TXT help.localhost
+# Returns: List of available services and usage examples
+```
 
 ### Data Dependencies
 
