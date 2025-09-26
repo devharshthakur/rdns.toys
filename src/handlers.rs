@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::net::IpAddr;
 use std::str::FromStr;
 
 use anyhow::{Result, anyhow};
@@ -15,9 +14,6 @@ use hickory_proto::{
 use hickory_server::server::Request;
 
 use crate::services;
-
-// Constants
-const IP_TTL: u32 = 60;
 
 // --- Regex for cleaning Queries ---//
 static RE_CLEAN: Lazy<Regex> =
@@ -101,58 +97,6 @@ impl DnsHandlers {
     pub fn register(&mut self, suffix: String, service: Box<dyn Service>) {
         self.services.insert(suffix.clone(), service);
         tracing::info!("Registered service for suffix: {}", suffix);
-    }
-
-    /// Handles DNS queries for the "ip" service, returning the client's IP address.
-    ///
-    /// This function provides IP echo functionality, allowing clients to discover
-    /// their own IP address through DNS queries. It supports both TXT and A record
-    /// types, returning the client's IP address in the appropriate format.
-    ///
-    /// This is a "self-discovery" service - clients can query their own IP address
-    /// through DNS, which is useful for network diagnostics, automation scripts,
-    /// or determining external IP addresses from behind NAT/firewalls.
-    ///
-    /// ## Arguments
-    /// * `request` - The DNS request, used to extract the client's source IP address
-    /// * `query_name` - The DNS name being queried
-    /// * `query_type` - The type of DNS record requested (TXT or A)
-    ///
-    /// ## Returns
-    /// * `Some(Record)` - DNS record containing the client's IP address
-    /// * `None` - If the query type is not supported or IPv6 is requested as A record
-    async fn handle_ip_query(
-        &self,
-        request: &Request,
-        query_name: &Name,
-        query_type: RecordType,
-    ) -> Option<Record> {
-        if query_type != RecordType::TXT && query_type != RecordType::A {
-            return None;
-        }
-
-        let client_ip = request.src().ip();
-
-        match query_type {
-            RecordType::TXT => Some(Record::from_rdata(
-                query_name.clone(),
-                IP_TTL,
-                RData::TXT(rdata::TXT::new(vec![client_ip.to_string()])),
-            )),
-            RecordType::A => {
-                // Return as an A record if it's IPv4
-                if let IpAddr::V4(ipv4) = client_ip {
-                    Some(Record::from_rdata(
-                        query_name.clone(),
-                        IP_TTL,
-                        RData::A(ipv4.into()),
-                    ))
-                } else {
-                    None // Can't return IPv6 as A record
-                }
-            }
-            _ => None,
-        }
     }
 
     /// Routes service requests to the correct service implementation and formats the DNS response.
@@ -373,7 +317,6 @@ impl DnsHandlers {
 
         let query = &request.queries()[0];
         let query_name = query.name();
-        let query_type = query.query_type();
         let query_str = query_name.to_string();
 
         tracing::info!(
@@ -387,32 +330,15 @@ impl DnsHandlers {
             return Ok(self.handle_help_query(query_name));
         }
 
-        // Handle IP service queries
-        if query_str.ends_with(&format!("ip.{}.", self.domain.to_string())) {
-            if let Some(record) = self.handle_ip_query(request, query_name, query_type).await {
-                return Ok(vec![record]);
-            }
-        }
-
-        // Handle Pi service queries
-        if query_str.ends_with(&format!("pi.{}.", self.domain.to_string())) {
-            if let Some(pi_service) = self.services.get("pi") {
-                if let Some(records) = pi_service.query(request, query_name, query_type, "").await {
-                    return Ok(records);
-                }
-            }
-        }
-
-        // Handle service queries (uuid, time, etc.)
+        // Handle service queries (ip, uuid, time, etc.)
         tracing::debug!("Checking services for query: '{}'", query_str);
         for (suffix, _) in &self.services {
-            let expected = format!(".{}.{}.", suffix, self.domain.to_string());
-            tracing::debug!(
-                "  Checking suffix '{}' with expected ends_with: '{}'",
-                suffix,
-                expected
-            );
-            if query_str.ends_with(&expected) {
+            // Check for both formats: "suffix.domain." and ".suffix.domain."
+            let expected_with_dot = format!(".{}.{}.", suffix, self.domain.to_string());
+            let expected_without_dot = format!("{}.{}.", suffix, self.domain.to_string());
+
+            if query_str.ends_with(&expected_with_dot) || query_str.ends_with(&expected_without_dot)
+            {
                 tracing::debug!("  Match found for suffix: '{}'", suffix);
                 return self.process_service_request(request, suffix).await;
             }

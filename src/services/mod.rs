@@ -1,7 +1,9 @@
+pub mod ip;
 pub mod pi;
 pub mod uuid;
 
 use crate::handlers::DnsHandlers;
+use crate::services::ip::IpService;
 use crate::services::pi::PiService;
 use crate::services::uuid::UUidService;
 use anyhow::Result;
@@ -14,8 +16,13 @@ const IP_TTL: u32 = 60;
 /// Registers all available DNS services with the handlers.
 ///
 /// This function centralizes service registration, making it easy to add new services
-/// and test them individually. Currently registers: uuid, ip, and pi services.
+/// and test them individually. Currently registers: ip, uuid, and pi services.
 pub fn register_services(handlers: &mut DnsHandlers) -> Result<()> {
+    // Register IP service
+    let ip_service = IpService::new();
+    handlers.register("ip".to_string(), Box::new(ip_service));
+    tracing::info!("✅ Registered IP service");
+
     // Register UUID service
     let uuid_service = UUidService::new(10); // Max 10 UUIDs per query
     handlers.register("uuid".to_string(), Box::new(uuid_service));
@@ -49,6 +56,7 @@ pub fn create_help_records(domain: &str) -> Result<Vec<Record>> {
     let help_texts = vec![
         "Welcome! Available DNS services:".to_string(),
         format!("dig TXT ip.{}", domain),
+        format!("dig A ip.{}", domain),
         format!("dig A pi.{}", domain),
         format!("dig TXT <location>.time.{}", domain),
         format!("dig TXT <number>.uuid.{}", domain),

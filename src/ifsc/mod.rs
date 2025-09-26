@@ -11,8 +11,6 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
-use crate::ifsc;
-
 const IFSC_CODE_LEN: usize = 11;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
