@@ -1,8 +1,10 @@
+pub mod geo;
 pub mod ip;
 pub mod pi;
 pub mod uuid;
 
 use crate::handlers::DnsHandlers;
+use crate::services::geo::GeoService;
 use crate::services::ip::IpService;
 use crate::services::pi::PiService;
 use crate::services::uuid::UUidService;
@@ -16,7 +18,7 @@ const IP_TTL: u32 = 60;
 /// Registers all available DNS services with the handlers.
 ///
 /// This function centralizes service registration, making it easy to add new services
-/// and test them individually. Currently registers: ip, uuid, and pi services.
+/// and test them individually. Currently registers: ip, uuid, pi, and geo services.
 pub fn register_services(handlers: &mut DnsHandlers) -> Result<()> {
     // Register IP service
     let ip_service = IpService::new();
@@ -32,6 +34,11 @@ pub fn register_services(handlers: &mut DnsHandlers) -> Result<()> {
     let pi_service = PiService::new();
     handlers.register("pi".to_string(), Box::new(pi_service));
     tracing::info!("✅ Registered Pi service");
+
+    // Register Geo service
+    let geo_service = GeoService::new("data/cities15000.txt")?;
+    handlers.register("geo".to_string(), Box::new(geo_service));
+    tracing::info!("✅ Registered Geo service");
 
     Ok(())
 }
@@ -58,7 +65,7 @@ pub fn create_help_records(domain: &str) -> Result<Vec<Record>> {
         format!("dig TXT ip.{}", domain),
         format!("dig A ip.{}", domain),
         format!("dig A pi.{}", domain),
-        format!("dig TXT <location>.time.{}", domain),
+        format!("dig TXT <location>.geo.{}", domain),
         format!("dig TXT <number>.uuid.{}", domain),
         format!("dig TXT help.{}", domain),
     ];

@@ -132,7 +132,6 @@ impl DnsHandlers {
             return Err(anyhow!("Not a query operation"));
         }
 
-        // Enforce maximum of 5 queries per request
         if request.queries().len() > 5 {
             return Err(anyhow!("Too many queries"));
         }
@@ -149,7 +148,6 @@ impl DnsHandlers {
                 continue;
             }
 
-            // Extract query name
             let query_name = query.name();
 
             // Build domain suffix and clean the query
@@ -339,7 +337,7 @@ impl DnsHandlers {
 
             if query_str.ends_with(&expected_with_dot) || query_str.ends_with(&expected_without_dot)
             {
-                tracing::debug!("  Match found for suffix: '{}'", suffix);
+                tracing::debug!("Match found for suffix: '{}'", suffix);
                 return self.process_service_request(request, suffix).await;
             }
         }

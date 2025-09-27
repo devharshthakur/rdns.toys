@@ -1,2 +1,7 @@
 /target
 node_modules
+
+# Ignore all contents of data folder except readme.md
+data/*
+!data/readme.md
+!data/.gitkeep
