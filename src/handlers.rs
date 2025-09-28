@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::iter;
 use std::str::FromStr;
 
 use anyhow::{Result, anyhow};
@@ -8,10 +9,13 @@ use regex::Regex;
 use tracing;
 
 use hickory_proto::{
-    op::OpCode,
+    op::{Header, OpCode},
     rr::{LowerName, Name, RData, Record, RecordType, rdata},
 };
-use hickory_server::server::Request;
+use hickory_server::{
+    authority::MessageResponseBuilder,
+    server::{Request, RequestHandler, ResponseHandler, ResponseInfo},
+};
 
 use crate::services;
 
@@ -96,7 +100,6 @@ impl DnsHandlers {
     /// ```
     pub fn register(&mut self, suffix: String, service: Box<dyn Service>) {
         self.services.insert(suffix.clone(), service);
-        tracing::info!("Registered service for suffix: {}", suffix);
     }
 
     /// Routes service requests to the correct service implementation and formats the DNS response.
@@ -329,7 +332,6 @@ impl DnsHandlers {
         }
 
         // Handle service queries (ip, uuid, time, etc.)
-        tracing::debug!("Checking services for query: '{}'", query_str);
         for (suffix, _) in &self.services {
             // Check for both formats: "suffix.domain." and ".suffix.domain."
             let expected_with_dot = format!(".{}.{}.", suffix, self.domain.to_string());
@@ -337,13 +339,96 @@ impl DnsHandlers {
 
             if query_str.ends_with(&expected_with_dot) || query_str.ends_with(&expected_without_dot)
             {
-                tracing::debug!("Match found for suffix: '{}'", suffix);
                 return self.process_service_request(request, suffix).await;
             }
         }
-        tracing::debug!("No service matched, returning default error");
 
         // Handle unknown queries using default query case
         Ok(vec![self.handle_default_query(query_name)])
+    }
+}
+
+/// Custom request handler for Rdns Project
+/// It is best way to integrate our own DnsHandler with the hickory server
+pub struct RdnsRequestHandler {
+    handlers: DnsHandlers,
+}
+
+impl RdnsRequestHandler {
+    pub fn new(handlers: DnsHandlers) -> Self {
+        Self { handlers }
+    }
+
+    /// Creates a response header with minimal configuration.
+    /// Uses the built-in response_from_request which already handles most fields
+    fn create_response_header(&self, request: &Request, is_error: bool) -> Header {
+        let mut header = Header::response_from_request(request.header());
+        header.set_authoritative(true);
+        header.set_recursion_available(false);
+
+        if is_error {
+            header.set_response_code(hickory_proto::op::ResponseCode::ServFail);
+        }
+
+        header
+    }
+}
+
+#[async_trait::async_trait]
+impl RequestHandler for RdnsRequestHandler {
+    /// Handles incoming DNS requests by routing them to appropriate services and sending responses.
+    ///
+    /// Processes requests through the DnsHandlers, creates proper DNS response headers,
+    /// and sends the response back to the client. Uses built-in Hickory functions for
+    /// simplified header construction.
+    async fn handle_request<R: ResponseHandler>(
+        &self,
+        request: &Request,
+        mut response_handle: R,
+    ) -> ResponseInfo {
+        // Process the request using our custom handlers
+        match self.handlers.process_dns_query(request).await {
+            Ok(records) => {
+                // Create response header using built-in function (much simpler!)
+                let response_header = self.create_response_header(request, false);
+
+                // Create a MessageResponse with the records
+                let response = MessageResponseBuilder::from_message_request(request).build(
+                    response_header,
+                    records.iter(),
+                    iter::empty(),
+                    iter::empty(),
+                    iter::empty(),
+                );
+
+                // Send the response
+                response_handle
+                    .send_response(response)
+                    .await
+                    .unwrap_or_else(|_err| {
+                        tracing::error!("Failed to send response");
+                        ResponseInfo::from(Header::new())
+                    })
+            }
+            Err(err) => {
+                tracing::error!("Error handling request: {}", err);
+
+                // Create error response header using built-in function
+                let response_header = self.create_response_header(request, true);
+
+                // Create an error MessageResponse with no records
+                let response = MessageResponseBuilder::from_message_request(request)
+                    .build_no_records(response_header);
+
+                // Send the error response
+                response_handle
+                    .send_response(response)
+                    .await
+                    .unwrap_or_else(|_err| {
+                        tracing::error!("Failed to send error response");
+                        ResponseInfo::from(hickory_proto::op::Header::new())
+                    })
+            }
+        }
     }
 }

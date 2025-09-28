@@ -63,7 +63,6 @@ This is the project setup guide which will help you get RDNS Toys up and running
 
 Details will be added later as project is its early stages
 
-````
 
 ## Development
 
@@ -77,52 +76,7 @@ just
 
 # Setup development environment
 just setup
-
-# Run the project
-just run
-
-# Run tests
-just test
-
-# Format code
-just fmt
-
-# Format Markdown files
-just format
-
-# Run all checks
-just check
-
-# Pre-commit checks
-just pre-commit
-
-# Development workflow
-just dev
 ````
-
-### Manual Commands
-
-If you prefer not to use Just:
-
-```bash
-# Build
-cargo build
-
-# Run
-cargo run
-
-# Test
-cargo test
-
-# Format Rust code
-cargo fmt
-
-# Format Markdown
-pnpm format
-
-# Clippy checks
-cargo clippy
-```
 
 ## Testing
 

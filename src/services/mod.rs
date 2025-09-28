@@ -1,13 +1,14 @@
 pub mod geo;
 pub mod ip;
 pub mod pi;
+pub mod random;
 pub mod uuid;
 
-use crate::handlers::DnsHandlers;
 use crate::services::geo::GeoService;
 use crate::services::ip::IpService;
 use crate::services::pi::PiService;
 use crate::services::uuid::UUidService;
+use crate::{handlers::DnsHandlers, services::random::RandomService};
 use anyhow::Result;
 use hickory_proto::rr::{Name, RData, Record, rdata};
 use std::str::FromStr;
@@ -40,6 +41,11 @@ pub fn register_services(handlers: &mut DnsHandlers) -> Result<()> {
     handlers.register("geo".to_string(), Box::new(geo_service));
     tracing::info!("✅ Registered Geo service");
 
+    // Register Random service
+    let random_service = RandomService::new();
+    handlers.register("random".to_string(), Box::new(random_service));
+    tracing::info!("✅ Registered Random service");
+
     Ok(())
 }
 
@@ -67,6 +73,7 @@ pub fn create_help_records(domain: &str) -> Result<Vec<Record>> {
         format!("dig A pi.{}", domain),
         format!("dig TXT <location>.geo.{}", domain),
         format!("dig TXT <number>.uuid.{}", domain),
+        format!("dig TXT <min>-<max>.random.{}", domain),
         format!("dig TXT help.{}", domain),
     ];
     let mut records = Vec::new();
