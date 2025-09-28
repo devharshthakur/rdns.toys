@@ -6,7 +6,8 @@
 	"scripts": {
 		"format": "biome format --write .",
 		"format:check": "biome format . --skip-parse-errors",
-		"clean": "rimraf node_modules"
+		"clean": "rimraf node_modules",
+		"test:dns": "./scripts/test.sh"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.2.4",

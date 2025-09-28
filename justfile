@@ -62,3 +62,11 @@ info:
     @echo "📦 Cargo version: $(cargo --version)"
     @echo "📦 pnpm version: $(pnpm --version)"
     @echo "📦 Node.js version: $(node --version)"
+
+# DNS Testing Commands
+# Test DNS services with interactive menu
+test-dns:
+    ./scripts/test.sh
+
+# Alias for test-dns
+tdns: test-dns
