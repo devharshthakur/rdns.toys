@@ -696,6 +696,7 @@ dependencies = [
  "hickory-proto",
  "hickory-server",
  "once_cell",
+ "rand",
  "regex",
  "serde",
  "serde_json",

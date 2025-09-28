@@ -48,6 +48,12 @@ This document tracks the progress of porting the original Go-based
   - [ ] Input validation
   - [ ] Error handling
 
+- [x] UUID generation service (`uuid/mod.rs`)
+  - [x] UUID v4 generation
+  - [x] Multiple results support
+  - [x] Configurable count (1-10 UUIDs)
+  - [x] Performance optimization
+
 - [x] Pi service (`pi/mod.rs`)
   - [x] Return digits of π (TXT records)
   - [x] IPv4 representation (A records)
@@ -129,12 +135,6 @@ This document tracks the progress of porting the original Go-based
 
 ### Advanced Services
 
-- [x] UUID generation service (`uuid/mod.rs`)
-  - [x] UUID v4 generation
-  - [x] Multiple results support
-  - [x] Configurable count (1-10 UUIDs)
-  - [x] Performance optimization
-
 - [ ] Sudoku solver service (`sudoku.rs`)
   - [ ] Algorithm implementation
   - [ ] Input parsing
@@ -149,7 +149,9 @@ This document tracks the progress of porting the original Go-based
   - [ ] Multiple coordinate formats
   - [ ] Performance optimization
 
-## Testing & Quality
+## Testing & Quality 
+> **Note:** Writing tests will be started once all the important and basic services are fully functional. The focus is currently on implementing and stabilizing core features before comprehensive test coverage is added.
+
 
 - [ ] Unit tests for all services
 - [ ] Integration tests
@@ -164,18 +166,6 @@ This document tracks the progress of porting the original Go-based
 - [x] Pull request template
 - [ ] API documentation
 - [ ] Service documentation
-- [ ] Configuration guide
-- [ ] Deployment instructions
-- [ ] Performance tuning guide
-- [ ] Troubleshooting guide
-
-## Progress Tracking
-
-- **Core Infrastructure**: 85% complete
-- **Services**: 40% complete
-- **Testing**: 0% complete
-- **Documentation**: 70% complete
-- **Deployment**: 0% complete
 
 ## Notes
 
