@@ -13,8 +13,8 @@ use regex::Regex;
 /// The query format should be "min-max" (e.g., "1-100", "10-50").
 ///
 /// Examples:
-/// - dig TXT 1-100.random.localhost
-/// - dig TXT 10-50.random.localhost
+/// - `dig TXT 1-100.random.localhost`
+/// - `dig TXT 10-50.random.localhost`
 ///
 /// The service is designed to be educational and demonstrate DNS-based random number generation.
 pub struct RandomService;
@@ -41,7 +41,7 @@ impl RandomService {
     /// # Returns
     /// * `Ok(i32)` - A random integer within the specified range.
     /// * `Err(anyhow::Error)` - If the query format is invalid, parsing fails, or the range is invalid.
-    fn generate_random(&self, query: &str) -> Result<i32> {
+    fn generate_random_number(&self, query: &str) -> Result<i32> {
         let captures = RANGE_REGEX
             .captures(query)
             .ok_or_else(|| anyhow!("Invalid random query format"))?;
@@ -93,7 +93,7 @@ impl Service for RandomService {
     ) -> Option<Vec<Record>> {
         match query_type {
             RecordType::TXT => {
-                let random_value = self.generate_random(cleaned_query).unwrap();
+                let random_value = self.generate_random_number(cleaned_query).unwrap();
                 Some(vec![Record::from_rdata(
                     query_name.clone(),
                     RANDOM_TTL,
