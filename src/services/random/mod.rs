@@ -21,6 +21,11 @@ pub struct RandomService;
 
 const RANDOM_TTL: u32 = 1;
 
+/// Regex to match a numeric range in the format "min-max".
+///
+/// This regex captures two groups of digits separated by a hyphen, anchored to the start and end of the string.
+/// For example, the query "1-100" will match and capture "1" as the minimum and "100" as the maximum.
+/// Captured from `dns.toys` project.
 static RANGE_REGEX: Lazy<Regex> =
     Lazy::new(|| Regex::new(r"^([0-9]+)-([0-9]+)$").expect("Invalid Regex pattern"));
 
@@ -78,7 +83,7 @@ impl Service for RandomService {
     /// ## Arguments
     /// * `request` - The DNS request
     /// * `query_name` - The DNS name being queried
-    /// * `query_type` - The type of DNS record requested (TXT, A, AAAA)
+    /// * `query_type` - The type of DNS record requested (`TXT`, `A`, `AAAA`)
     /// * `cleaned_query` - The cleaned query string (e.g., "1-100")
     ///
     /// ## Returns

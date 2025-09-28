@@ -1,4 +1,4 @@
-# DNS Toys - Rust Port
+# RDNS Toys
 
 A Rust implementation of [dns.toys](https://dns.toys), a DNS server that provides various utility
 services accessible via DNS queries made by [Kailash Nadh](https://github.com/knadh)
